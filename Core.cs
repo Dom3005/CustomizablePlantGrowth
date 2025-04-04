@@ -129,4 +129,14 @@ namespace CustomizablePlantGrowth
         }
     }
 
+    [HarmonyPatch(typeof(Il2CppScheduleOne.ObjectScripts.Pot), "GetAdditiveYieldMultiplier")]
+    public class PlantGetAdditiveYieldMultiplierPatch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(ref float __result)
+        {
+            __result *= Core.yield.Value;
+        }
+    }
+
 }
