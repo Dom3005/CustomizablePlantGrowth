@@ -6,7 +6,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Core), "CustomizablePlantGrowth", "1.0.0", "Dom3005", null)]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Core), "CustomizablePlantGrowth", "1.0.1", "Dom3005", null)]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
@@ -15,8 +15,10 @@ namespace CustomizablePlantGrowth
     {
         private static MelonPreferences_Category plantGrowth;
         public static MelonPreferences_Entry<float> growthRate;
+        public static MelonPreferences_Entry<float> yield;
         private static bool showMenu = false;
-        private float sliderValue = 1;
+        private float growthSliderValue = 1;
+        private float yieldSliderValue = 1;
         public override void OnInitializeMelon()
         {
             LoggerInstance.Msg("Initialized.");
@@ -26,7 +28,9 @@ namespace CustomizablePlantGrowth
         {
             plantGrowth = MelonPreferences.CreateCategory("CustomizablePlantGrowth", "Customizable Plant Growth");
 
-            growthRate = plantGrowth.CreateEntry("GrowthRate", 100.0f, "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
+            growthRate = plantGrowth.CreateEntry("GrowthRate", 1.0f, "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
+            yield = plantGrowth.CreateEntry("Yield", 1.0f, "Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
+            growthSliderValue = growthRate.Value;
 
             HarmonyLib.Harmony harmony = new HarmonyLib.Harmony("com.dom3005.customizableplantgrowth");
             harmony.PatchAll();
@@ -36,19 +40,24 @@ namespace CustomizablePlantGrowth
         {
             if (!showMenu) return;
 
-            GUI.Box(new Rect(20, 20, 500, 150), "Customizable Plant Growth: Mod Settings");
-            GUI.Label(new Rect(30, 50, 200, 20), "Plant Growth Multiplier: ");
-
-            GUI.Label(new Rect(250, 50, 50, 20), sliderValue.ToString("F1"));
             GUIStyle sliderStyle = CreateWhiteBorderSliderStyle();
             GUIStyle thumbStyle = GUI.skin.horizontalSliderThumb;
 
-            sliderValue = GUI.HorizontalSlider(new Rect(30, 70, 250, 20), sliderValue, 0.1f, 10.0f, sliderStyle, thumbStyle);
+            GUI.Box(new Rect(20, 20, 300, 150), "Customizable Plant Growth: Mod Settings");
 
-            if(GUI.Button(new Rect(30, 100, 100, 20), "Apply"))
+            GUI.Label(new Rect(30, 50, 200, 20), "Plant Growth Multiplier: ");
+            GUI.Label(new Rect(250, 50, 50, 20), growthSliderValue.ToString("F1"));
+            growthSliderValue = GUI.HorizontalSlider(new Rect(30, 70, 250, 20), growthSliderValue, 0.1f, 10.0f, sliderStyle, thumbStyle);
+
+            GUI.Label(new Rect(30, 120, 200, 20), "Plant Yield Multiplier: ");
+            GUI.Label(new Rect(250, 120, 50, 20), yieldSliderValue.ToString("F1"));
+            yieldSliderValue = GUI.HorizontalSlider(new Rect(30, 140, 250, 20), yieldSliderValue, 0.1f, 10.0f, sliderStyle, thumbStyle);
+
+            if (GUI.Button(new Rect(30, 100, 100, 20), "Apply"))
             {
-                growthRate.Value = sliderValue;
-                MelonLogger.Msg($"Growth rate set to: {growthRate.Value}");
+                growthRate.Value = growthSliderValue;
+                yield.Value = yieldSliderValue;
+                MelonLogger.Msg($"Growth rate set to: {growthRate.Value} and {yield.Value}x yield");
 
                 showMenu = false;
                 PlayerSingleton<PlayerMovement>.Instance.canMove = true;
@@ -109,35 +118,6 @@ namespace CustomizablePlantGrowth
             }
         }
     }
-
-    //[HarmonyPatch(typeof(Plant), "MinPass")]
-    //public class PlantMinPassPatch
-    //{
-    //    [HarmonyTranspiler]
-    //    public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-    //    {
-    //        var codes = new List<CodeInstruction>(instructions);
-
-    //        for (int i = 0; i < codes.Count; i++)
-    //        {
-    //            MelonLogger.Msg($"Instruction {i}: {codes[i].opcode} {codes[i].operand}");
-    //            // Looking for the instruction that loads the local variable before the method call
-    //            if ((codes[i].opcode == OpCodes.Ldloc || codes[i].opcode == OpCodes.Ldloc_S ||
-    //                 codes[i].opcode == OpCodes.Ldloc_0 || codes[i].opcode == OpCodes.Ldloc_1 ||
-    //                 codes[i].opcode == OpCodes.Ldloc_2 || codes[i].opcode == OpCodes.Ldloc_3) &&
-    //                i + 1 < codes.Count && codes[i + 1].Calls(AccessTools.Method(typeof(Plant), "SetNormalizedGrowthProgress")))
-    //            {
-    //                // Insert our own code to modify the value on the stack
-    //                codes.Insert(i + 1, new CodeInstruction(OpCodes.Ldc_R4, Core.growthRate.Value + 100)); // For a float
-    //                codes.Insert(i + 2, new CodeInstruction(OpCodes.Mul)); // Multiply by 2
-    //                MelonLogger.Msg("Modified parameter value before method call");
-    //                break;
-    //            }
-    //        }
-
-    //        return codes;
-    //    }
-    //}
 
     [HarmonyPatch(typeof(Il2CppScheduleOne.ObjectScripts.Pot), "GetAdditiveGrowthMultiplier")]
     public class PlantGetAdditiveGrowthMultiplierPatch
