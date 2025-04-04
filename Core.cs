@@ -1,24 +1,35 @@
-﻿using HarmonyLib;
+﻿using System.Reflection.Emit;
+using HarmonyLib;
 using Il2CppScheduleOne;
 using Il2CppScheduleOne.DevUtilities;
+using Il2CppScheduleOne.Growing;
+using Il2CppScheduleOne.ObjectScripts;
 using Il2CppScheduleOne.PlayerScripts;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Core), "CustomizablePlantGrowth", "1.0.1", "Dom3005", null)]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Core), "CustomizablePlantGrowth", "1.1.0", "Dom3005", null)]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
 {
     public class Core : MelonMod
     {
+        public static HarmonyLib.Harmony harmony;
+
         private static MelonPreferences_Category plantGrowth;
         public static MelonPreferences_Entry<float> growthRate;
         public static MelonPreferences_Entry<float> yield;
+        public static MelonPreferences_Entry<int> yieldPerBud;
+        public static MelonPreferences_Entry<float> quality;
+        public static MelonPreferences_Entry<int> dryingSpeed;
         private static bool showMenu = false;
         private float growthSliderValue = 1;
         private float yieldSliderValue = 1;
+        private int yieldPerBudSliderValue = 1;
+        private float qualitySliderValue = 1;
+        private int dryingSpeedSliderValue = 1;
         public override void OnInitializeMelon()
         {
             LoggerInstance.Msg("Initialized.");
@@ -30,9 +41,17 @@ namespace CustomizablePlantGrowth
 
             growthRate = plantGrowth.CreateEntry("GrowthRate", 1.0f, "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
             yield = plantGrowth.CreateEntry("Yield", 1.0f, "Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
-            growthSliderValue = growthRate.Value;
+            yieldPerBud = plantGrowth.CreateEntry("YieldPerBud", 1, "Yield multiplier for buds (2 for double yield). Default is 1.");
+            quality = plantGrowth.CreateEntry("Quality", 1.0f, "Quality (higher = better). Default is 1.0.");
+            dryingSpeed = plantGrowth.CreateEntry("DryingSpeed", 1, "Drying speed (higher = faster). Default is 1.");
 
-            HarmonyLib.Harmony harmony = new HarmonyLib.Harmony("com.dom3005.customizableplantgrowth");
+            growthSliderValue = growthRate.Value;
+            yieldSliderValue = yield.Value;
+            yieldPerBudSliderValue = yieldPerBud.Value;
+            qualitySliderValue = quality.Value;
+            dryingSpeedSliderValue = dryingSpeed.Value;
+
+            harmony = new HarmonyLib.Harmony("com.dom3005.customizableplantgrowth");
             harmony.PatchAll();
         }
 
@@ -43,21 +62,35 @@ namespace CustomizablePlantGrowth
             GUIStyle sliderStyle = CreateWhiteBorderSliderStyle();
             GUIStyle thumbStyle = GUI.skin.horizontalSliderThumb;
 
-            GUI.Box(new Rect(20, 20, 300, 150), "Customizable Plant Growth: Mod Settings");
+            GUI.Box(new Rect(20, 20, 300, 230), "Customizable Plant Growth: Mod Settings");
 
             GUI.Label(new Rect(30, 50, 200, 20), "Plant Growth Multiplier: ");
             GUI.Label(new Rect(250, 50, 50, 20), growthSliderValue.ToString("F1"));
             growthSliderValue = GUI.HorizontalSlider(new Rect(30, 70, 250, 20), growthSliderValue, 0.1f, 10.0f, sliderStyle, thumbStyle);
 
-            GUI.Label(new Rect(30, 120, 200, 20), "Plant Yield Multiplier: ");
-            GUI.Label(new Rect(250, 120, 50, 20), yieldSliderValue.ToString("F1"));
-            yieldSliderValue = GUI.HorizontalSlider(new Rect(30, 140, 250, 20), yieldSliderValue, 0.1f, 10.0f, sliderStyle, thumbStyle);
+            GUI.Label(new Rect(30, 80, 200, 20), "Plant Yield Multiplier: ");
+            GUI.Label(new Rect(250, 80, 50, 20), yieldSliderValue.ToString("F1"));
+            yieldSliderValue = GUI.HorizontalSlider(new Rect(30, 100, 250, 20), yieldSliderValue, 0.1f, 10.0f, sliderStyle, thumbStyle);
 
-            if (GUI.Button(new Rect(30, 100, 100, 20), "Apply"))
+            GUI.Label(new Rect(30, 110, 200, 20), "Plant Yield per Bud: ");
+            GUI.Label(new Rect(250, 110, 50, 20), yieldPerBudSliderValue.ToString("F0"));
+            yieldPerBudSliderValue = Mathf.FloorToInt(GUI.HorizontalSlider(new Rect(30, 130, 250, 20), yieldPerBudSliderValue, 1, 10, sliderStyle, thumbStyle));
+
+            GUI.Label(new Rect(30, 140, 200, 20), "Plant Quality: ");
+            GUI.Label(new Rect(250, 140, 50, 20), qualitySliderValue.ToString("F1"));
+            qualitySliderValue = GUI.HorizontalSlider(new Rect(30, 160, 250, 20), qualitySliderValue, 0.1f, 10, sliderStyle, thumbStyle);
+
+            GUI.Label(new Rect(30, 170, 200, 20), "Drying speed: ");
+            GUI.Label(new Rect(250, 170, 50, 20), dryingSpeedSliderValue.ToString("F0"));
+            dryingSpeedSliderValue = Mathf.FloorToInt(GUI.HorizontalSlider(new Rect(30, 190, 250, 20), dryingSpeedSliderValue, 1, 10, sliderStyle, thumbStyle));
+
+            if (GUI.Button(new Rect(30, 210, 100, 20), "Apply"))
             {
                 growthRate.Value = growthSliderValue;
                 yield.Value = yieldSliderValue;
-                MelonLogger.Msg($"Growth rate set to: {growthRate.Value} and {yield.Value}x yield");
+                yieldPerBud.Value = yieldPerBudSliderValue;
+                quality.Value = qualitySliderValue;
+                dryingSpeed.Value = dryingSpeedSliderValue;
 
                 showMenu = false;
                 PlayerSingleton<PlayerMovement>.Instance.canMove = true;
@@ -97,7 +130,6 @@ namespace CustomizablePlantGrowth
         {
             if (Input.GetKeyDown(KeyCode.F1))
             {
-                MelonLogger.Msg("F1 pressed! Toggling menu visibility.");
                 showMenu = !showMenu;
                 if (showMenu)
                 {
@@ -119,7 +151,7 @@ namespace CustomizablePlantGrowth
         }
     }
 
-    [HarmonyPatch(typeof(Il2CppScheduleOne.ObjectScripts.Pot), "GetAdditiveGrowthMultiplier")]
+    [HarmonyPatch(typeof(Pot), "GetAdditiveGrowthMultiplier")]
     public class PlantGetAdditiveGrowthMultiplierPatch
     {
         [HarmonyPostfix]
@@ -129,14 +161,37 @@ namespace CustomizablePlantGrowth
         }
     }
 
-    [HarmonyPatch(typeof(Il2CppScheduleOne.ObjectScripts.Pot), "GetAdditiveYieldMultiplier")]
-    public class PlantGetAdditiveYieldMultiplierPatch
+    [HarmonyPatch(typeof(Plant), "GrowthDone")]
+    public class PlantGrowthDonePatch
     {
-        [HarmonyPostfix]
-        public static void Postfix(ref float __result)
+        public static void Prefix(Plant __instance)
         {
-            __result *= Core.yield.Value;
+            __instance.YieldLevel = __instance.BaseYieldLevel * Core.yield.Value;
+            __instance.QualityLevel = __instance.BaseQualityLevel * Core.quality.Value;
         }
     }
 
+    [HarmonyPatch(typeof(PlantHarvestable), "Harvest")]
+    public class PlantHarvestableHarvestPatch
+    {
+        public static void Prefix(PlantHarvestable __instance)
+        {
+            __instance.ProductQuantity = Core.yieldPerBud.Value;
+        }
+    }
+
+    [HarmonyPatch(typeof(DryingRack), "MinPass")]
+    public class DryingRackMinPassPatch
+    {
+        public static void Postfix(DryingRack __instance)
+        {
+            foreach(DryingOperation dryingOperation in __instance.DryingOperations)
+            {
+                if (dryingOperation != null)
+                {
+                    dryingOperation.Time += Core.dryingSpeed.Value - 1;
+                }
+            }
+        }
+    }
 }
