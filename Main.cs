@@ -1,36 +1,35 @@
-﻿using System.Reflection.Emit;
-using HarmonyLib;
-using Il2CppInterop.Runtime.Injection;
+﻿using Il2CppInterop.Runtime.Injection;
 using Il2CppScheduleOne;
 using Il2CppScheduleOne.DevUtilities;
-using Il2CppScheduleOne.Growing;
-using Il2CppScheduleOne.ObjectScripts;
 using Il2CppScheduleOne.PlayerScripts;
 using MelonLoader;
 using UnityEngine;
-using UnityEngine.InputSystem;
+using CustomizablePlantGrowth.Patches;
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Core), "CustomizablePlantGrowth", "1.1.1", "Dom3005", null)]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.1.1", "Dom3005", null)]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
 {
-    public class Core : MelonMod
+    public class Main : MelonMod
     {
         public static HarmonyLib.Harmony harmony;
 
-        private static MelonPreferences_Category plantGrowth;
+        public static MelonPreferences_Category plantGrowth;
         public static MelonPreferences_Entry<float> growthRate;
         public static MelonPreferences_Entry<float> yield;
         public static MelonPreferences_Entry<int> yieldPerBud;
         public static MelonPreferences_Entry<int> dryingSpeed;
         public static MelonPreferences_Entry<bool> modifyQuality;
+
         private static bool showMenu = false;
         private float growthSliderValue = 1;
         private float yieldSliderValue = 1;
         private int yieldPerBudSliderValue = 1;
         private int dryingSpeedSliderValue = 1;
         private bool modifyQualityValue = false;
+
+
         public override void OnInitializeMelon()
         {
             LoggerInstance.Msg("Initialized.");
@@ -38,6 +37,7 @@ namespace CustomizablePlantGrowth
 
         public override void OnApplicationStart()
         {
+            // config stuff
             plantGrowth = MelonPreferences.CreateCategory("CustomizablePlantGrowth", "Customizable Plant Growth");
 
             growthRate = plantGrowth.CreateEntry("GrowthRate", 1.0f, "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
@@ -46,13 +46,16 @@ namespace CustomizablePlantGrowth
             dryingSpeed = plantGrowth.CreateEntry("DryingSpeed", 1, "Drying speed (higher = faster). Default is 1.");
             modifyQuality = plantGrowth.CreateEntry("BestQuality", false, "Always best quality?. Default is false.");
 
+            // init gui values
             growthSliderValue = growthRate.Value;
             yieldSliderValue = yield.Value;
             yieldPerBudSliderValue = yieldPerBud.Value;
             dryingSpeedSliderValue = dryingSpeed.Value;
 
+            // register types
             ClassInjector.RegisterTypeInIl2Cpp<PlantModified>();
 
+            // register patches
             harmony = new HarmonyLib.Harmony("com.dom3005.customizableplantgrowth");
             harmony.PatchAll();
         }
@@ -61,7 +64,7 @@ namespace CustomizablePlantGrowth
         {
             if (!showMenu) return;
 
-            GUIStyle sliderStyle = CreateWhiteBorderSliderStyle();
+            GUIStyle sliderStyle = Utility.CreateWhiteBorderSliderStyle();
             GUIStyle thumbStyle = GUI.skin.horizontalSliderThumb;
 
             GUI.Box(new Rect(20, 20, 300, 230), "Customizable Plant Growth: Mod Settings");
@@ -86,6 +89,7 @@ namespace CustomizablePlantGrowth
 
             if (GUI.Button(new Rect(30, 210, 100, 20), "Apply"))
             {
+                // apply changes to config
                 growthRate.Value = growthSliderValue;
                 yield.Value = yieldSliderValue;
                 yieldPerBud.Value = yieldPerBudSliderValue;
@@ -94,32 +98,6 @@ namespace CustomizablePlantGrowth
 
                 CloseGUI();
             }
-        }
-
-        private Texture2D CreateWhiteBorderTexture(int width, int height)
-        {
-            Texture2D tex = new Texture2D(width, height);
-            Color borderColor = Color.white;
-            Color fillColor = Color.gray;
-
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    bool isBorder = x == 0 || y == 0 || x == width - 1 || y == height - 1;
-                    tex.SetPixel(x, y, isBorder ? borderColor : fillColor);
-                }
-            }
-            tex.Apply();
-            return tex;
-        }
-
-        private GUIStyle CreateWhiteBorderSliderStyle()
-        {
-            Texture2D bg = CreateWhiteBorderTexture(250, 20);
-            GUIStyle style = new GUIStyle(GUI.skin.horizontalSlider);
-            style.normal.background = bg;
-            return style;
         }
 
         public override void OnUpdate()
@@ -148,59 +126,6 @@ namespace CustomizablePlantGrowth
             PlayerSingleton<PlayerMovement>.Instance.canMove = false;
             PlayerSingleton<PlayerCamera>.Instance.AddActiveUIElement("growthmod_settings");
             PlayerSingleton<PlayerCamera>.Instance.FreeMouse();
-        }
-    }
-
-
-    [HarmonyPatch(typeof(Pot), "GetAdditiveGrowthMultiplier")]
-    public class PlantGetAdditiveGrowthMultiplierPatch
-    {
-        [HarmonyPostfix]
-        public static void Postfix(ref float __result)
-        {
-            __result *= Core.growthRate.Value;
-        }
-    }
-
-    [HarmonyPatch(typeof(Plant), "GrowthDone")]
-    public class PlantGrowthDonePatch
-    {
-        public static void Prefix(Plant __instance)
-        {
-            if (__instance == null) return;
-            if (__instance.GetComponent<PlantModified>() != null) return;
-
-            __instance.gameObject.AddComponent<PlantModified>();
-            __instance.YieldLevel *= Core.yield.Value;
-            if(Core.modifyQuality.Value) __instance.QualityLevel = 10;
-        }
-    }
-
-    // Control class, to not modify the same plant twice
-    public class PlantModified : MonoBehaviour
-    { }
-
-    [HarmonyPatch(typeof(PlantHarvestable), "Harvest")]
-    public class PlantHarvestableHarvestPatch
-    {
-        public static void Prefix(PlantHarvestable __instance)
-        {
-            __instance.ProductQuantity = Core.yieldPerBud.Value;
-        }
-    }
-
-    [HarmonyPatch(typeof(DryingRack), "MinPass")]
-    public class DryingRackMinPassPatch
-    {
-        public static void Postfix(DryingRack __instance)
-        {
-            foreach(DryingOperation dryingOperation in __instance.DryingOperations)
-            {
-                if (dryingOperation != null)
-                {
-                    dryingOperation.Time += Core.dryingSpeed.Value - 1;
-                }
-            }
         }
     }
 }

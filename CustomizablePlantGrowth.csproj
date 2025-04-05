@@ -462,7 +462,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Include="Core.cs" />
+		<Compile Include="Main.cs" />
+		<Compile Include="DryingRack.cs" />
+		<Compile Include="Plant.cs" />
+		<Compile Include="Utility.cs" />
 	</ItemGroup>
 	
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
