@@ -1,6 +1,7 @@
 using HarmonyLib;
 using Il2CppScheduleOne.Growing;
 using Il2CppScheduleOne.ObjectScripts;
+using MelonLoader;
 using UnityEngine;
 
 namespace CustomizablePlantGrowth.Patches

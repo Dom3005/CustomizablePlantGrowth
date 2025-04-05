@@ -463,8 +463,10 @@
 
 	<ItemGroup>
 		<Compile Include="Main.cs" />
-		<Compile Include="DryingRack.cs" />
-		<Compile Include="Plant.cs" />
+		<Compile Include="patches\Botanist.cs" />
+		<Compile Include="Patches\DryingRack.cs" />
+		<Compile Include="Patches\Plant.cs" />
+		<Compile Include="UI.cs" />
 		<Compile Include="Utility.cs" />
 	</ItemGroup>
 	

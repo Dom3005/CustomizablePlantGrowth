@@ -6,7 +6,7 @@ using MelonLoader;
 using UnityEngine;
 using CustomizablePlantGrowth.Patches;
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.1.1", "Dom3005", null)]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.1.3", "Dom3005", null)]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
@@ -14,7 +14,9 @@ namespace CustomizablePlantGrowth
     public class Main : MelonMod
     {
         public static HarmonyLib.Harmony harmony;
+        public static Main Instance;
 
+        // config stuff
         public static MelonPreferences_Category plantGrowth;
         public static MelonPreferences_Entry<float> growthRate;
         public static MelonPreferences_Entry<float> yield;
@@ -22,6 +24,7 @@ namespace CustomizablePlantGrowth
         public static MelonPreferences_Entry<int> dryingSpeed;
         public static MelonPreferences_Entry<bool> modifyQuality;
 
+        // gui stuff
         private static bool showMenu = false;
         private float growthSliderValue = 1;
         private float yieldSliderValue = 1;
@@ -29,10 +32,13 @@ namespace CustomizablePlantGrowth
         private int dryingSpeedSliderValue = 1;
         private bool modifyQualityValue = false;
 
+        private float debugVar = 0;
+
 
         public override void OnInitializeMelon()
         {
             LoggerInstance.Msg("Initialized.");
+            Instance = this;
         }
 
         public override void OnApplicationStart()
@@ -63,6 +69,14 @@ namespace CustomizablePlantGrowth
         public override void OnGUI()
         {
             if (!showMenu) return;
+
+            //UI.MenuPage page = new UI.MenuPage("Customizable Plant Growth: Mod Settings");
+            //page.AddElement(new UI.MenuLabel("Customizable Plant Growth: Mod Settings"));
+            //UI.MenuSlider slider = (UI.MenuSlider)page.AddElement(new UI.MenuSlider("Plant Growth Multiplier", debugVar, 0.1f, 10.0f));
+            //debugVar = slider.currentValue;
+
+            //page.RenderPage(20, 20);
+            //return;
 
             GUIStyle sliderStyle = Utility.CreateWhiteBorderSliderStyle();
             GUIStyle thumbStyle = GUI.skin.horizontalSliderThumb;
@@ -95,6 +109,7 @@ namespace CustomizablePlantGrowth
                 yieldPerBud.Value = yieldPerBudSliderValue;
                 modifyQuality.Value = modifyQualityValue;
                 dryingSpeed.Value = dryingSpeedSliderValue;
+                MelonPreferences.Save();
 
                 CloseGUI();
             }
@@ -102,7 +117,7 @@ namespace CustomizablePlantGrowth
 
         public override void OnUpdate()
         {
-            if (Input.GetKeyDown(KeyCode.F1))
+            if (Input.GetKeyDown(KeyCode.F1) || (Input.GetKeyDown(KeyCode.P) && !GameInput.IsTyping))
             {
                 showMenu = !showMenu;
                 if (showMenu) OpenGUI();
