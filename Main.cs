@@ -6,7 +6,7 @@ using MelonLoader;
 using UnityEngine;
 using CustomizablePlantGrowth.Patches;
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.1.3", "Dom3005", null)]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.2.0", "Dom3005", null)]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
@@ -17,6 +17,9 @@ namespace CustomizablePlantGrowth
         public static Main Instance;
 
         // config stuff
+        public static MelonPreferences_Category menuConfig;
+        public static MelonPreferences_Entry<KeyCode> keybindEntry;
+
         public static MelonPreferences_Category plantGrowth;
         public static MelonPreferences_Entry<float> growthRate;
         public static MelonPreferences_Entry<float> yield;
@@ -32,6 +35,8 @@ namespace CustomizablePlantGrowth
         private int dryingSpeedSliderValue = 1;
         private bool modifyQualityValue = false;
 
+        private bool recordingInput = false;
+
         private float debugVar = 0;
 
 
@@ -46,11 +51,14 @@ namespace CustomizablePlantGrowth
             // config stuff
             plantGrowth = MelonPreferences.CreateCategory("CustomizablePlantGrowth", "Customizable Plant Growth");
 
-            growthRate = plantGrowth.CreateEntry("GrowthRate", 1.0f, "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
-            yield = plantGrowth.CreateEntry("Yield", 1.0f, "Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
-            yieldPerBud = plantGrowth.CreateEntry("YieldPerBud", 1, "Yield multiplier for buds (2 for double yield). Default is 1.");
-            dryingSpeed = plantGrowth.CreateEntry("DryingSpeed", 1, "Drying speed (higher = faster). Default is 1.");
-            modifyQuality = plantGrowth.CreateEntry("BestQuality", false, "Always best quality?. Default is false.");
+            growthRate = plantGrowth.CreateEntry("GrowthRate", 1.0f, description: "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
+            yield = plantGrowth.CreateEntry("Yield", 1.0f, description: "Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
+            yieldPerBud = plantGrowth.CreateEntry("YieldPerBud", 1, description: "Yield multiplier for buds (2 for double yield). Default is 1.");
+            dryingSpeed = plantGrowth.CreateEntry("DryingSpeed", 1, description: "Drying speed (higher = faster). Default is 1.");
+            modifyQuality = plantGrowth.CreateEntry("BestQuality", false, description: "Always best quality?. Default is false.");
+
+            menuConfig = MelonPreferences.CreateCategory("CustomizablePlantGrowthMenu", "Menu Config");
+            keybindEntry = menuConfig.CreateEntry("Keybind", KeyCode.F1, description: "Keybind to open the menu. (Default is F1)");
 
             // init gui values
             growthSliderValue = growthRate.Value;
@@ -81,7 +89,7 @@ namespace CustomizablePlantGrowth
             GUIStyle sliderStyle = Utility.CreateWhiteBorderSliderStyle();
             GUIStyle thumbStyle = GUI.skin.horizontalSliderThumb;
 
-            GUI.Box(new Rect(20, 20, 300, 230), "Customizable Plant Growth: Mod Settings");
+            GUI.Box(new Rect(20, 20, 300, 250), "Customizable Plant Growth: Mod Settings");
 
             GUI.Label(new Rect(30, 50, 200, 20), "Plant Growth Multiplier: ");
             GUI.Label(new Rect(250, 50, 50, 20), growthSliderValue.ToString("F1"));
@@ -101,7 +109,16 @@ namespace CustomizablePlantGrowth
             GUI.Label(new Rect(250, 170, 50, 20), dryingSpeedSliderValue.ToString("F0"));
             dryingSpeedSliderValue = Mathf.FloorToInt(GUI.HorizontalSlider(new Rect(30, 190, 250, 20), dryingSpeedSliderValue, 1, 10, sliderStyle, thumbStyle));
 
-            if (GUI.Button(new Rect(30, 210, 100, 20), "Apply"))
+            if(!recordingInput && GUI.Button(new Rect(30, 210, 200, 20), "Menu Keybind: " + keybindEntry.Value))
+            {
+                recordingInput = !recordingInput;
+            }
+            else if (recordingInput && GUI.Button(new Rect(30, 210, 200, 20), "Recording.. (Esc to cancel)"))
+            {
+                recordingInput = !recordingInput;
+            }
+
+            if (GUI.Button(new Rect(240, 210, 50, 20), "Apply"))
             {
                 // apply changes to config
                 growthRate.Value = growthSliderValue;
@@ -117,11 +134,28 @@ namespace CustomizablePlantGrowth
 
         public override void OnUpdate()
         {
-            if (Input.GetKeyDown(KeyCode.F1) || (Input.GetKeyDown(KeyCode.P) && !GameInput.IsTyping))
+            if (Input.GetKeyDown(keybindEntry.Value) || (Input.GetKeyDown(KeyCode.P) && !GameInput.IsTyping && keybindEntry.Value != keybindEntry.DefaultValue))
             {
                 showMenu = !showMenu;
                 if (showMenu) OpenGUI();
                 else CloseGUI();
+            }
+            if(recordingInput)
+            {
+                if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    recordingInput = false;
+                    return;
+                }
+                foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (Input.GetKeyDown(key))
+                    {
+                        recordingInput = false;
+                        keybindEntry.Value = key;
+                        break;
+                    }
+                }
             }
         }
         private void CloseGUI()
