@@ -5,8 +5,9 @@ using Il2CppScheduleOne.PlayerScripts;
 using MelonLoader;
 using UnityEngine;
 using CustomizablePlantGrowth.Patches;
+using UnityEngine.InputSystem;
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.2.0", "Dom3005", null)]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.2.1", "Dom3005", null)]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
@@ -19,6 +20,7 @@ namespace CustomizablePlantGrowth
         // config stuff
         public static MelonPreferences_Category menuConfig;
         public static MelonPreferences_Entry<KeyCode> keybindEntry;
+        public static MelonPreferences_Entry<KeyCode> keybindAddition;
 
         public static MelonPreferences_Category plantGrowth;
         public static MelonPreferences_Entry<float> growthRate;
@@ -59,6 +61,7 @@ namespace CustomizablePlantGrowth
 
             menuConfig = MelonPreferences.CreateCategory("CustomizablePlantGrowthMenu", "Menu Config");
             keybindEntry = menuConfig.CreateEntry("Keybind", KeyCode.F1, description: "Keybind to open the menu. (Default is F1)");
+            keybindAddition = menuConfig.CreateEntry("KeybindAddition", KeyCode.None, description: "Second key needed to open menu (e.g. alt) (Default is None)");
 
             // init gui values
             growthSliderValue = growthRate.Value;
@@ -109,7 +112,7 @@ namespace CustomizablePlantGrowth
             GUI.Label(new Rect(250, 170, 50, 20), dryingSpeedSliderValue.ToString("F0"));
             dryingSpeedSliderValue = Mathf.FloorToInt(GUI.HorizontalSlider(new Rect(30, 190, 250, 20), dryingSpeedSliderValue, 1, 10, sliderStyle, thumbStyle));
 
-            if(!recordingInput && GUI.Button(new Rect(30, 210, 200, 20), "Menu Keybind: " + keybindEntry.Value))
+            if(!recordingInput && GUI.Button(new Rect(30, 210, 200, 20), "Menu Keybind: " + (keybindAddition.Value != KeyCode.None ? keybindAddition.Value + "+" : "") + keybindEntry.Value))
             {
                 recordingInput = !recordingInput;
             }
@@ -134,7 +137,7 @@ namespace CustomizablePlantGrowth
 
         public override void OnUpdate()
         {
-            if (Input.GetKeyDown(keybindEntry.Value) || (Input.GetKeyDown(KeyCode.P) && !GameInput.IsTyping && keybindEntry.Value != keybindEntry.DefaultValue))
+            if (Input.GetKeyDown(keybindEntry.Value) && (keybindAddition.Value == KeyCode.None || Input.GetKey(keybindAddition.Value)) && !recordingInput)
             {
                 showMenu = !showMenu;
                 if (showMenu) OpenGUI();
@@ -142,18 +145,27 @@ namespace CustomizablePlantGrowth
             }
             if(recordingInput)
             {
-                if (Input.GetKeyDown(KeyCode.Escape))
+                if (Input.GetKey(KeyCode.Escape))
                 {
                     recordingInput = false;
                     return;
                 }
+
+                if (Input.GetKey(KeyCode.LeftAlt)) keybindAddition.Value = KeyCode.LeftAlt;
+                else if (Input.GetKey(KeyCode.LeftControl)) keybindAddition.Value = KeyCode.LeftControl;
+                else if (Input.GetKey(KeyCode.LeftShift)) keybindAddition.Value = KeyCode.LeftShift;
+                else keybindAddition.Value = KeyCode.None;
+
                 foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
                 {
-                    if (Input.GetKeyDown(key))
+                    if (key != KeyCode.None && key != KeyCode.Escape && key != KeyCode.LeftAlt && key != KeyCode.LeftControl && key != KeyCode.LeftShift)
                     {
-                        recordingInput = false;
-                        keybindEntry.Value = key;
-                        break;
+                        if (Input.GetKey(key))
+                        {
+                            recordingInput = false;
+                            keybindEntry.Value = key;
+                            break;
+                        }
                     }
                 }
             }

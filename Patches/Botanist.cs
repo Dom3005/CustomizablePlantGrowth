@@ -23,9 +23,6 @@ namespace CustomizablePlantGrowth.Patches
             ItemInstance item = __instance.botanist.MoveItemBehaviour.itemToRetrieveTemplate;
             item.Quantity = Math.Min(item.Quantity * Main.yieldPerBud.Value, item.StackLimit);
 
-            MelonLogger.Msg("Grabbed: " + __instance.botanist.MoveItemBehaviour.grabbedAmount);
-            MelonLogger.Msg("Amount: " + __instance.botanist.MoveItemBehaviour.itemToRetrieveTemplate.Quantity);
-
         }
     }
 }
