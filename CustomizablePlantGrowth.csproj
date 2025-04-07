@@ -466,6 +466,8 @@
 		<Compile Include="patches\Botanist.cs" />
 		<Compile Include="Patches\DryingRack.cs" />
 		<Compile Include="Patches\Plant.cs" />
+		<Compile Include="patches\Pot.cs" />
+		<Compile Include="patches\Supplier.cs" />
 		<Compile Include="UI.cs" />
 		<Compile Include="Utility.cs" />
 	</ItemGroup>

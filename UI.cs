@@ -1,3 +1,4 @@
+using MelonLoader;
 using UnityEngine;
 
 
@@ -10,7 +11,66 @@ namespace CustomizablePlantGrowth.UI
         public static void ToggleMenu() => showMenu = !showMenu;
         public static void ToggleMenu(bool value) => showMenu = value;
         
+        public static void RenderUI()
+        {
+            GUIStyle sliderStyle = Utility.CreateWhiteBorderSliderStyle();
+            GUIStyle thumbStyle = GUI.skin.horizontalSliderThumb;
 
+            GUI.Box(new Rect(20, 20, 300, 375), "Customizable Plant Growth: Mod Settings");
+
+            GUI.Label(new Rect(30, 50, 200, 20), "Plant Growth Multiplier: ");
+            GUI.Label(new Rect(250, 50, 50, 20), Main.growthSliderValue.ToString("F1"));
+            Main.growthSliderValue = GUI.HorizontalSlider(new Rect(30, 70, 250, 20), Main.growthSliderValue, 0.1f, 10.0f, sliderStyle, thumbStyle);
+
+            GUI.Label(new Rect(30, 80, 200, 20), "Plant Yield Multiplier: ");
+            GUI.Label(new Rect(250, 80, 50, 20), Main.yieldSliderValue.ToString("F1"));
+            Main.yieldSliderValue = GUI.HorizontalSlider(new Rect(30, 100, 250, 20), Main.yieldSliderValue, 0.1f, 3.0f, sliderStyle, thumbStyle);
+
+            GUI.Label(new Rect(30, 110, 200, 20), "Plant Yield per Bud: ");
+            GUI.Label(new Rect(250, 110, 50, 20), Main.yieldPerBudSliderValue.ToString("F0"));
+            Main.yieldPerBudSliderValue = Mathf.FloorToInt(GUI.HorizontalSlider(new Rect(30, 130, 250, 20), Main.yieldPerBudSliderValue, 1, 10, sliderStyle, thumbStyle));
+
+            Main.modifyQualityValue = GUI.Toggle(new Rect(30, 150, 200, 30), Main.modifyQualityValue, " Always legendary plants?");
+
+            GUI.Label(new Rect(30, 170, 200, 20), "Drying speed: ");
+            GUI.Label(new Rect(250, 170, 50, 20), Main.dryingSpeedSliderValue.ToString("F0"));
+            Main.dryingSpeedSliderValue = Mathf.FloorToInt(GUI.HorizontalSlider(new Rect(30, 190, 250, 20), Main.dryingSpeedSliderValue, 1, 10, sliderStyle, thumbStyle));
+
+            GUI.Label(new Rect(30, 200, 200, 20), "Max Supplier delivery time: ");
+            GUI.Label(new Rect(250, 200, 50, 20), Main.deliveryMaxSliderValue.ToString("F0") + "s");
+            Main.deliveryMaxSliderValue = Mathf.FloorToInt(GUI.HorizontalSlider(new Rect(30, 220, 250, 20), Main.deliveryMaxSliderValue, 0, 360, sliderStyle, thumbStyle));
+
+            GUI.Label(new Rect(30, 230, 200, 20), "Water drain multiplier: ");
+            GUI.Label(new Rect(250, 230, 50, 20), Main.waterDrainSliderValue.ToString("F1"));
+            Main.waterDrainSliderValue = GUI.HorizontalSlider(new Rect(30, 250, 250, 20), Main.waterDrainSliderValue, 0, 2, sliderStyle, thumbStyle);
+
+            Main.infiniteSoilValue = GUI.Toggle(new Rect(30, 270, 200, 30), Main.infiniteSoilValue, " Infinite soil?");
+
+            if (!Main.recordingInput && GUI.Button(new Rect(30, 310, 200, 20), "Menu Keybind: " + (Main.keybindAddition.Value != KeyCode.None ? Main.keybindAddition.Value + "+" : "") + Main.keybindEntry.Value))
+            {
+                Main.recordingInput = !Main.recordingInput;
+            }
+            else if (Main.recordingInput && GUI.Button(new Rect(30, 310, 200, 20), "Recording.. (Esc to cancel)"))
+            {
+                Main.recordingInput = !Main.recordingInput;
+            }
+
+            if (GUI.Button(new Rect(240, 310, 50, 20), "Apply"))
+            {
+                // apply changes to config
+                Main.growthRate.Value = Main.growthSliderValue;
+                Main.yield.Value = Main.yieldSliderValue;
+                Main.yieldPerBud.Value = Main.yieldPerBudSliderValue;
+                Main.modifyQuality.Value = Main.modifyQualityValue;
+                Main.dryingSpeed.Value = Main.dryingSpeedSliderValue;
+                Main.waterDrain.Value = Main.waterDrainSliderValue;
+                Main.infiniteSoil.Value = Main.infiniteSoilValue;
+                Main.deliveryMax.Value = Main.deliveryMaxSliderValue;
+                MelonPreferences.Save();
+
+                Main.CloseGUI();
+            }
+        }
     }
 
     public class MenuPage
