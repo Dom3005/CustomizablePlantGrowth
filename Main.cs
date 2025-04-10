@@ -7,7 +7,7 @@ using UnityEngine;
 using CustomizablePlantGrowth.Patches;
 
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.3.0", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.3.2", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
@@ -45,12 +45,18 @@ namespace CustomizablePlantGrowth
 
         public static bool recordingInput = false;
 
+        public static bool phoneModManagerLoaded = false;
+
         private float debugVar = 0;
 
+        private static Action saveAction = ReloadVariables;
+        public static event Action OnSave;
+        
 
         public override void OnInitializeMelon()
         {
             LoggerInstance.Msg("Initialized.");
+
             Instance = this;
         }
 
@@ -59,29 +65,21 @@ namespace CustomizablePlantGrowth
             // config stuff
             plantGrowth = MelonPreferences.CreateCategory("CustomizablePlantGrowth", "Customizable Plant Growth");
 
-            growthRate = plantGrowth.CreateEntry("GrowthRate", 1.0f, description: "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
-            yield = plantGrowth.CreateEntry("Yield", 1.0f, description: "Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
-            yieldPerBud = plantGrowth.CreateEntry("YieldPerBud", 1, description: "Yield multiplier for buds (2 for double yield). Default is 1.");
-            dryingSpeed = plantGrowth.CreateEntry("DryingSpeed", 1, description: "Drying speed (higher = faster). Default is 1.");
-            modifyQuality = plantGrowth.CreateEntry("BestQuality", false, description: "Always best quality?. Default is false.");
-            waterDrain = plantGrowth.CreateEntry("WaterDrain", 1.0f, description: "Water drain multiplier (lower = water lasts longer). Default is 1.0");
-            infiniteSoil = plantGrowth.CreateEntry("InfiniteSoil", false, description: "Infinite soil? (true = infinite soil). Default is false.");
+            growthRate      = plantGrowth.CreateEntry("GrowthRate",     1.0f,   display_name: "Growth Rate",        description: "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
+            yield           = plantGrowth.CreateEntry("Yield",          1.0f,   display_name: "Plant Yield",        description: "Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
+            yieldPerBud     = plantGrowth.CreateEntry("YieldPerBud",    1,      display_name: "Yield per bud",      description: "Yield multiplier for buds (2 for double yield). Default is 1.");
+            dryingSpeed     = plantGrowth.CreateEntry("DryingSpeed",    1,      display_name: "Drying Speed",       description: "Drying speed (higher = faster). Default is 1.");
+            modifyQuality   = plantGrowth.CreateEntry("BestQuality",    false,  display_name: "Always Legendary?",  description: "Always best quality?. Default is false.");
+            waterDrain      = plantGrowth.CreateEntry("WaterDrain",     1.0f,   display_name: "Water Drainrate",    description: "Water drain multiplier (lower = water lasts longer). Default is 1.0");
+            infiniteSoil    = plantGrowth.CreateEntry("InfiniteSoil",   false,  display_name: "Infinite Soil?",     description: "Infinite soil? (true = infinite soil). Default is false.");
 
-            deliveryMax = plantGrowth.CreateEntry("DeliveryMax", 360, description: "Longest a supplier delivery can take in seconds. Default is 360");
+            deliveryMax = plantGrowth.CreateEntry("DeliveryMax", 360, display_name: "Supplier longest delivery time (in s)", description: "Longest a supplier delivery can take in seconds. Default is 360");
 
-            menuConfig = MelonPreferences.CreateCategory("CustomizablePlantGrowthMenu", "Menu Config");
-            keybindEntry = menuConfig.CreateEntry("Keybind", KeyCode.F1, description: "Keybind to open the menu. (Default is F1)");
-            keybindAddition = menuConfig.CreateEntry("KeybindAddition", KeyCode.None, description: "Second key needed to open menu (e.g. alt) (Default is None)");
+            menuConfig = MelonPreferences.CreateCategory("CustomizablePlantGrowthMenu", "Menu Config (not working in Phone Modmanager 1.4.1)");
+            keybindEntry    = menuConfig.CreateEntry("Keybind",         KeyCode.F1,     display_name: "Menu Keybind",                       description: "Keybind to open the menu. (Default is F1)");
+            keybindAddition = menuConfig.CreateEntry("KeybindAddition", KeyCode.None,   display_name: "Keybind Addition, can be (none)",    description: "Second key needed to open menu (e.g. alt, so its alt+F1) (Default is None)");
 
-            // init gui values
-            growthSliderValue = growthRate.Value;
-            yieldSliderValue = yield.Value;
-            yieldPerBudSliderValue = yieldPerBud.Value;
-            dryingSpeedSliderValue = dryingSpeed.Value;
-            modifyQualityValue = modifyQuality.Value;
-            deliveryMaxSliderValue = deliveryMax.Value;
-            waterDrainSliderValue = waterDrain.Value;
-            infiniteSoilValue = infiniteSoil.Value;
+            InitGuiValues();
 
 
             // register types
@@ -93,19 +91,30 @@ namespace CustomizablePlantGrowth
             harmony.PatchAll();
         }
 
+        private static void InitGuiValues()
+        {
+            // init gui values
+            growthSliderValue = growthRate.Value;
+            yieldSliderValue = yield.Value;
+            yieldPerBudSliderValue = yieldPerBud.Value;
+            dryingSpeedSliderValue = dryingSpeed.Value;
+            modifyQualityValue = modifyQuality.Value;
+            deliveryMaxSliderValue = deliveryMax.Value;
+            waterDrainSliderValue = waterDrain.Value;
+            infiniteSoilValue = infiniteSoil.Value;
+        }
+
         public override void OnGUI()
         {
             if (!showMenu) return;
             UI.Manager.RenderUI();
-            //UI.MenuPage page = new UI.MenuPage("Customizable Plant Growth: Mod Settings");
-            //page.AddElement(new UI.MenuLabel("Customizable Plant Growth: Mod Settings"));
-            //UI.MenuSlider slider = (UI.MenuSlider)page.AddElement(new UI.MenuSlider("Plant Growth Multiplier", debugVar, 0.1f, 10.0f));
-            //debugVar = slider.currentValue;
+        }
 
-            //page.RenderPage(20, 20);
-            //return;
-
-
+        public static void ReloadVariables()
+        {
+            MelonPreferences.Load();
+            InitGuiValues();
+            MelonLogger.Msg("Reloaded variables from config.");
         }
 
         public override void OnUpdate()
@@ -155,6 +164,7 @@ namespace CustomizablePlantGrowth
         public static void OpenGUI()
         {
             showMenu = true;
+            InitGuiValues();
             Singleton<GameInput>.Instance.ExitAll();
             PlayerSingleton<PlayerCamera>.Instance.SetCanLook(false);
             PlayerSingleton<PlayerMovement>.Instance.canMove = false;

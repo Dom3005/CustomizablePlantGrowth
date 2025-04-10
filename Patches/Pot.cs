@@ -24,12 +24,12 @@ namespace CustomizablePlantGrowth.Patches
         }
     }
 
-    [HarmonyPatch(typeof(Pot), "SetSoilUses", [typeof(int)])]
+    [HarmonyPatch(typeof(Pot), "ResetPot")]
     public class PotSetSoilUsesPatch
     {
-        public static void Prefix(ref int uses)
+        public static void Prefix(Pot __instance)
         {
-            if (Main.infiniteSoil.Value) uses = 2;
+            if (Main.infiniteSoil.Value) __instance.RemainingSoilUses = 2;
         }
     }
 
