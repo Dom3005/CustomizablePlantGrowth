@@ -15,7 +15,7 @@ namespace CustomizablePlantGrowth.Patches
             if (__instance.GetComponent<PlantModified>() != null) return;
 
             __instance.gameObject.AddComponent<PlantModified>();
-            __instance.YieldLevel *= Main.yield.Value;
+            __instance.YieldMultiplier *= Main.yield.Value;
             if (Main.modifyQuality.Value) __instance.QualityLevel = 10;
         }
     }
@@ -32,13 +32,14 @@ namespace CustomizablePlantGrowth.Patches
         }
     }
 
-    [HarmonyPatch(typeof(Pot), "GetAdditiveGrowthMultiplier")]
-    public class PlantGetAdditiveGrowthMultiplierPatch
+    [HarmonyPatch(typeof(Plant), "SetNormalizedGrowthProgress", new Type[] {typeof(float)})]
+    public class PlantSetNormalizedGrowthProgressPatch
     {
-        [HarmonyPostfix]
-        public static void Postfix(ref float __result)
+        public static void Prefix(Plant __instance, ref float progress)
         {
-            __result *= Main.growthRate.Value;
+            float normalizedProgress = __instance.NormalizedGrowthProgress;
+            float progressChange = progress - normalizedProgress; // basically "num" used in MinPass
+            progress = normalizedProgress + (progressChange * Main.growthRate.Value);
         }
     }
 }

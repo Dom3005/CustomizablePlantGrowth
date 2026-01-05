@@ -7,7 +7,7 @@ using UnityEngine;
 using CustomizablePlantGrowth.Patches;
 
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.3.2", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.4.0", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
@@ -75,7 +75,7 @@ namespace CustomizablePlantGrowth
 
             deliveryMax = plantGrowth.CreateEntry("DeliveryMax", 360, display_name: "Supplier longest delivery time (in s)", description: "Longest a supplier delivery can take in seconds. Default is 360");
 
-            menuConfig = MelonPreferences.CreateCategory("CustomizablePlantGrowthMenu", "Menu Config (not working in Phone Modmanager 1.4.1)");
+            menuConfig = MelonPreferences.CreateCategory("CustomizablePlantGrowthMenu", "Menu Config");
             keybindEntry    = menuConfig.CreateEntry("Keybind",         KeyCode.F1,     display_name: "Menu Keybind",                       description: "Keybind to open the menu. (Default is F1)");
             keybindAddition = menuConfig.CreateEntry("KeybindAddition", KeyCode.None,   display_name: "Keybind Addition, can be (none)",    description: "Second key needed to open menu (e.g. alt, so its alt+F1) (Default is None)");
 
@@ -84,7 +84,7 @@ namespace CustomizablePlantGrowth
 
             // register types
             ClassInjector.RegisterTypeInIl2Cpp<PlantModified>();
-            ClassInjector.RegisterTypeInIl2Cpp<PotBaseValues>();
+            ClassInjector.RegisterTypeInIl2Cpp<GrowContainerBaseValues>();
 
             // register patches
             harmony = new HarmonyLib.Harmony("com.dom3005.customizableplantgrowth");
@@ -155,7 +155,7 @@ namespace CustomizablePlantGrowth
         public static void CloseGUI()
         {
             showMenu = false;
-            PlayerSingleton<PlayerMovement>.Instance.canMove = true;
+            PlayerSingleton<PlayerMovement>.Instance.CanMove = true;
             PlayerSingleton<PlayerCamera>.Instance.SetCanLook(true);
             PlayerSingleton<PlayerCamera>.Instance.RemoveActiveUIElement("growthmod_settings");
             PlayerSingleton<PlayerCamera>.Instance.LockMouse();
@@ -167,7 +167,7 @@ namespace CustomizablePlantGrowth
             InitGuiValues();
             Singleton<GameInput>.Instance.ExitAll();
             PlayerSingleton<PlayerCamera>.Instance.SetCanLook(false);
-            PlayerSingleton<PlayerMovement>.Instance.canMove = false;
+            PlayerSingleton<PlayerMovement>.Instance.CanMove = false;
             PlayerSingleton<PlayerCamera>.Instance.AddActiveUIElement("growthmod_settings");
             PlayerSingleton<PlayerCamera>.Instance.FreeMouse();
         }
