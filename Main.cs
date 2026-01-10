@@ -5,9 +5,12 @@ using Il2CppScheduleOne.PlayerScripts;
 using MelonLoader;
 using UnityEngine;
 using CustomizablePlantGrowth.Patches;
+using System;
+using System.Reflection;
+using HarmonyLib;
 
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.4.0", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.4.1", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth
@@ -34,6 +37,8 @@ namespace CustomizablePlantGrowth
 
         public static MelonPreferences_Entry<float> potYieldMultiplier;
 
+        public static MelonPreferences_Entry<float> shroomSpeedMultiplier;
+
         // gui stuff
         public static bool showMenu = false;
         public static float growthSliderValue = 1;
@@ -57,25 +62,21 @@ namespace CustomizablePlantGrowth
 
         public override void OnInitializeMelon()
         {
-            LoggerInstance.Msg("Initialized.");
-
             Instance = this;
-        }
 
-        public override void OnApplicationStart()
-        {
             // config stuff
             plantGrowth = MelonPreferences.CreateCategory("CustomizablePlantGrowth", "Customizable Plant Growth");
 
-            growthRate      = plantGrowth.CreateEntry("GrowthRate",     1.0f,   display_name: "Growth Rate",        description: "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
-            yield           = plantGrowth.CreateEntry("Yield",          1.0f,   display_name: "Global Plant Yield",        description: "Global Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
-            yieldPerBud     = plantGrowth.CreateEntry("YieldPerBud",    1,      display_name: "Yield per bud",      description: "Yield multiplier for buds (2 for double yield). Default is 1.");
-            dryingSpeed     = plantGrowth.CreateEntry("DryingSpeed",    1,      display_name: "Drying Speed",       description: "Drying speed (higher = faster). Default is 1.");
+            growthRate      = plantGrowth.CreateEntry("GrowthRate",     1.0f,   display_name: "Growth Rate",        description: "Global Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0");
+            yield           = plantGrowth.CreateEntry("Yield",          1.0f,   display_name: "Global Plant Yield",        description: "Global Yield multiplier for plants (2.0 for double yield). Default is 1.0");
+            yieldPerBud     = plantGrowth.CreateEntry("YieldPerBud",    1,      display_name: "Yield per bud",      description: "Yield multiplier for buds (2 for double yield). Default is 1");
+            dryingSpeed     = plantGrowth.CreateEntry("DryingSpeed",    1,      display_name: "Drying Speed",       description: "Drying speed (higher = faster). Default is 1");
             modifyQuality   = plantGrowth.CreateEntry("BestQuality",    false,  display_name: "Always Legendary?",  description: "Always best quality?. Default is false.");
             waterDrain      = plantGrowth.CreateEntry("WaterDrain",     1.0f,   display_name: "Water Drainrate",    description: "Water drain multiplier (lower = water lasts longer). Default is 1.0");
             infiniteSoil    = plantGrowth.CreateEntry("InfiniteSoil",   false,  display_name: "Infinite Soil?",     description: "Infinite soil? (true = infinite soil). Default is false.");
 
-            potYieldMultiplier = plantGrowth.CreateEntry("PotYieldMultiplier", 1.0f, display_name: "Pot Yield Multiplier", description: "Yield multiplier for pots (2.0 for double yield). Default is 1.0.");
+            potYieldMultiplier = plantGrowth.CreateEntry("PotYieldMultiplier", 1.0f, display_name: "Pot Yield Multiplier", description: "Yield multiplier for pot (2.0 for double yield). Default is 1.0.");
+            shroomSpeedMultiplier = plantGrowth.CreateEntry("ShroomSpeedMultiplier", 1.0f, display_name: "Shrom Growspeed Multiplier", description: "Growth rate multiplier for shrooms added ontop of the global growth rate. Default is 1.0");
 
             deliveryMax = plantGrowth.CreateEntry("DeliveryMax", 360, display_name: "Supplier longest delivery time (in s)", description: "Longest a supplier delivery can take in seconds. Default is 360");
 
@@ -93,6 +94,8 @@ namespace CustomizablePlantGrowth
             // register patches
             harmony = new HarmonyLib.Harmony("com.dom3005.customizableplantgrowth");
             harmony.PatchAll();
+
+            LoggerInstance.Msg("Initialized.");
         }
 
         private static void InitGuiValues()

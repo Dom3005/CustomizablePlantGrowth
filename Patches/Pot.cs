@@ -19,7 +19,7 @@ namespace CustomizablePlantGrowth.Patches
         }
     }
 
-
+    
     [HarmonyPatch(typeof(Pot), "OnPlantFullyHarvested")]
     public class PotOnPlantFullyHarvestedPatch
     {
@@ -28,5 +28,5 @@ namespace CustomizablePlantGrowth.Patches
             if (Main.infiniteSoil.Value) __instance._remainingSoilUses = 2;
         }
     }
-
+   
 }

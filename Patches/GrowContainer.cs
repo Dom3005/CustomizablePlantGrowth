@@ -35,8 +35,6 @@ namespace CustomizablePlantGrowth.Patches
             float baseDrain = baseValues != null ? baseValues.baseWaterDrainPerHour : __instance._moistureDrainPerHour;
 
             __instance._moistureDrainPerHour = baseDrain * Main.waterDrain.Value;
-
-            Main.Instance.LoggerInstance.Msg($"[SetMoistureAmountPatch] Adjusted moisture amount to {amount} (baseDrain: {baseDrain}, multiplier: {Main.waterDrain.Value})");
         }
     }
 }

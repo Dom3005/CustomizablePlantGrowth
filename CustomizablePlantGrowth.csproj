@@ -6,8 +6,8 @@
 		<RootNamespace>CustomizablePlantGrowth</RootNamespace>
 		<LangVersion>default</LangVersion>
 		<IsPackable>false</IsPackable>
-		<AssemblyVersion>1.0.0.0</AssemblyVersion>
-		<FileVersion>1.0.0.0</FileVersion>
+		<AssemblyVersion>1.4.1</AssemblyVersion>
+		<FileVersion>1.4.1</FileVersion>
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<AssemblyName>CustomizablePlantGrowth</AssemblyName>
 		<LangVersion>latest</LangVersion>
@@ -15,11 +15,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Reference Include="Assembly-CSharp">
+		  <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Schedule I\MelonLoader\Il2CppAssemblies\Assembly-CSharp.dll</HintPath>
+		</Reference>
 		<Reference Include="Assembly-CSharp-firstpass">
 			<HintPath>C:\Program Files (x86)\Steam\steamapps\common\Schedule I\MelonLoader\Il2CppAssemblies\Assembly-CSharp-firstpass.dll</HintPath>
-		</Reference>
-		<Reference Include="Assembly-CSharp">
-			<HintPath>C:\Program Files (x86)\Steam\steamapps\common\Schedule I\MelonLoader\Il2CppAssemblies\Assembly-CSharp.dll</HintPath>
 		</Reference>
 		<Reference Include="Il2CppAeLa.EasyFeedback">
 			<HintPath>C:\Program Files (x86)\Steam\steamapps\common\Schedule I\MelonLoader\Il2CppAssemblies\Il2CppAeLa.EasyFeedback.dll</HintPath>
@@ -462,9 +462,11 @@
 		<Compile Include="Main.cs" />
 		<Compile Include="Patches\DryingRack.cs" />
 		<Compile Include="Patches\GrowContainer.cs" />
+		<Compile Include="Patches\GrowingMushroom.cs" />
 		<Compile Include="Patches\MushroomBed.cs" />
 		<Compile Include="Patches\Plant.cs" />
 		<Compile Include="Patches\Pot.cs" />
+		<Compile Include="Patches\ShroomColony.cs" />
 		<Compile Include="patches\Supplier.cs" />
 		<Compile Include="UI.cs" />
 		<Compile Include="Utility.cs" />
