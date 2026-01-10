@@ -462,7 +462,9 @@
 		<Compile Include="Main.cs" />
 		<Compile Include="Patches\DryingRack.cs" />
 		<Compile Include="Patches\GrowContainer.cs" />
+		<Compile Include="Patches\MushroomBed.cs" />
 		<Compile Include="Patches\Plant.cs" />
+		<Compile Include="Patches\Pot.cs" />
 		<Compile Include="patches\Supplier.cs" />
 		<Compile Include="UI.cs" />
 		<Compile Include="Utility.cs" />

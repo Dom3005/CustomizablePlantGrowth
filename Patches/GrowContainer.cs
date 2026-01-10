@@ -15,16 +15,6 @@ namespace CustomizablePlantGrowth.Patches
         }
     }
 
-    [HarmonyPatch(typeof(Pot), nameof(Pot.OnMinPass))]
-    public class PotDrainMoisturePatch
-    {
-        public static void Prefix(GrowContainer __instance)
-        {
-            float baseDrain = __instance.gameObject.GetComponent<GrowContainerBaseValues>().baseWaterDrainPerHour;
-            __instance._moistureDrainPerHour = baseDrain * Main.waterDrain.Value;
-        }
-    }
-
     public class GrowContainerBaseValues : MonoBehaviour
     {
         public void Init(GrowContainer container)
@@ -34,12 +24,19 @@ namespace CustomizablePlantGrowth.Patches
         public float baseWaterDrainPerHour;
     }
 
-    [HarmonyPatch(typeof(Pot), "OnPlantFullyHarvested")]
-    public class PotOnPlantFullyHarvestedPatch
+    [HarmonyPatch(typeof(GrowContainer), nameof(GrowContainer.SetMoistureAmount), new Type[] { typeof(float) })]
+    public class GrowContainerSetMoistureAmountPatch
     {
-        public static void Prefix(Pot __instance)
+        public static void Prefix(GrowContainer __instance, ref float amount)
         {
-            if (Main.infiniteSoil.Value) __instance._remainingSoilUses = 2;
+            if (__instance == null) return;
+
+            var baseValues = __instance.gameObject.GetComponent<GrowContainerBaseValues>();
+            float baseDrain = baseValues != null ? baseValues.baseWaterDrainPerHour : __instance._moistureDrainPerHour;
+
+            __instance._moistureDrainPerHour = baseDrain * Main.waterDrain.Value;
+
+            Main.Instance.LoggerInstance.Msg($"[SetMoistureAmountPatch] Adjusted moisture amount to {amount} (baseDrain: {baseDrain}, multiplier: {Main.waterDrain.Value})");
         }
     }
 }

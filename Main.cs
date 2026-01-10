@@ -32,6 +32,8 @@ namespace CustomizablePlantGrowth
         public static MelonPreferences_Entry<float> waterDrain;
         public static MelonPreferences_Entry<bool> infiniteSoil;
 
+        public static MelonPreferences_Entry<float> potYieldMultiplier;
+
         // gui stuff
         public static bool showMenu = false;
         public static float growthSliderValue = 1;
@@ -66,12 +68,14 @@ namespace CustomizablePlantGrowth
             plantGrowth = MelonPreferences.CreateCategory("CustomizablePlantGrowth", "Customizable Plant Growth");
 
             growthRate      = plantGrowth.CreateEntry("GrowthRate",     1.0f,   display_name: "Growth Rate",        description: "Growth rate multiplier for plants (2.0 for double growth speed). Default is 1.0.");
-            yield           = plantGrowth.CreateEntry("Yield",          1.0f,   display_name: "Plant Yield",        description: "Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
+            yield           = plantGrowth.CreateEntry("Yield",          1.0f,   display_name: "Global Plant Yield",        description: "Global Yield multiplier for plants (2.0 for double yield). Default is 1.0.");
             yieldPerBud     = plantGrowth.CreateEntry("YieldPerBud",    1,      display_name: "Yield per bud",      description: "Yield multiplier for buds (2 for double yield). Default is 1.");
             dryingSpeed     = plantGrowth.CreateEntry("DryingSpeed",    1,      display_name: "Drying Speed",       description: "Drying speed (higher = faster). Default is 1.");
             modifyQuality   = plantGrowth.CreateEntry("BestQuality",    false,  display_name: "Always Legendary?",  description: "Always best quality?. Default is false.");
             waterDrain      = plantGrowth.CreateEntry("WaterDrain",     1.0f,   display_name: "Water Drainrate",    description: "Water drain multiplier (lower = water lasts longer). Default is 1.0");
             infiniteSoil    = plantGrowth.CreateEntry("InfiniteSoil",   false,  display_name: "Infinite Soil?",     description: "Infinite soil? (true = infinite soil). Default is false.");
+
+            potYieldMultiplier = plantGrowth.CreateEntry("PotYieldMultiplier", 1.0f, display_name: "Pot Yield Multiplier", description: "Yield multiplier for pots (2.0 for double yield). Default is 1.0.");
 
             deliveryMax = plantGrowth.CreateEntry("DeliveryMax", 360, display_name: "Supplier longest delivery time (in s)", description: "Longest a supplier delivery can take in seconds. Default is 360");
 
