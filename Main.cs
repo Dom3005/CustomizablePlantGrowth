@@ -10,7 +10,7 @@ using System.Reflection;
 using HarmonyLib;
 
 
-[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.4.1", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
+[assembly: MelonInfo(typeof(CustomizablePlantGrowth.Main), "CustomizablePlantGrowth", "1.4.2", "Dom3005", "https://www.nexusmods.com/schedule1/mods/233")]
 [assembly: MelonGame("TVGS", "Schedule I")]
 
 namespace CustomizablePlantGrowth

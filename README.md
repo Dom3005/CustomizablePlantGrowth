@@ -1,1 +1,1 @@
-this codebase runs on hopes and prayers
+For infos and builds please visit the [Nexusmods page](www.nexusmods.com/schedule1/mods/233)

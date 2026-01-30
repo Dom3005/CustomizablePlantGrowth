@@ -6,8 +6,8 @@
 		<RootNamespace>CustomizablePlantGrowth</RootNamespace>
 		<LangVersion>default</LangVersion>
 		<IsPackable>false</IsPackable>
-		<AssemblyVersion>1.4.1</AssemblyVersion>
-		<FileVersion>1.4.1</FileVersion>
+		<AssemblyVersion>1.4.2</AssemblyVersion>
+		<FileVersion>1.4.2</FileVersion>
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<AssemblyName>CustomizablePlantGrowth</AssemblyName>
 		<LangVersion>latest</LangVersion>

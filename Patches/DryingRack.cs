@@ -3,18 +3,12 @@ using Il2CppScheduleOne.ObjectScripts;
 
 namespace CustomizablePlantGrowth.Patches
 {
-    [HarmonyPatch(typeof(DryingRack), "MinPass")]
-    public class DryingRackMinPassPatch
+    [HarmonyPatch(typeof(DryingRack), nameof(DryingRack.OnTimePass))]
+    public class DryingRackOnTimePassPatch
     {
-        public static void Postfix(DryingRack __instance)
+        public static void Prefix(DryingRack __instance, ref int minutes)
         {
-            foreach (DryingOperation dryingOperation in __instance.DryingOperations)
-            {
-                if (dryingOperation != null)
-                {
-                    dryingOperation.Time += Main.dryingSpeed.Value - 1;
-                }
-            }
+            minutes = Main.dryingSpeed.Value;
         }
     }
 }
